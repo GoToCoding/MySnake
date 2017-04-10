@@ -2,6 +2,7 @@ import sys, pygame, random, copy
 from snake import Snake
 from food import Food
 from constants import *
+from ball import Ball
 
 
 pygame.init()
@@ -84,6 +85,10 @@ def game():
 
     snake1 = Snake(2, 2, screen, (255, 255, 0))
     snake2 = Snake(20, 20, screen, (255, 0, 255))
+
+    snake1.ball = Ball(screen, snake1.color, snake2)
+    snake2.ball = Ball(screen, snake2.color, snake1)
+
     yummy = Food(25, screen)
 
     while True:
@@ -101,6 +106,8 @@ def game():
                     snake1.tryToDirect('left')
                 if e.key == pygame.K_RIGHT:
                     snake1.tryToDirect('right')
+                if e.key == pygame.K_RCTRL:
+                    snake1.ball.shot(snake1.body[0][0], snake1.body[0][1], snake1.direction)
 
                 #second player
                 if e.key == pygame.K_w:
@@ -111,6 +118,8 @@ def game():
                     snake2.tryToDirect('down')
                 if e.key == pygame.K_d:
                     snake2.tryToDirect('right')
+                if e.key == pygame.K_r:
+                    snake2.ball.shot(snake2.body[0][0], snake2.body[0][1], snake2.direction)
 
                 #pause
                 if e.key == pygame.K_p:
@@ -131,7 +140,16 @@ def game():
         snake2.fixDirection()
 
         fl1 = snake1.die(snake2.body)
+        if snake1.isAlive == False:
+            fl1 = False
         fl2 = snake2.die(snake1.body)
+        if snake2.isAlive == False:
+            fl2 = False
+
+        if not snake1.ball.ready:
+            snake1.ball.go()
+        if not snake2.ball.ready:
+            snake2.ball.go()
 
         snake1.go()
         snake2.go()
@@ -174,6 +192,10 @@ def game():
 
         snake1.draw()
         snake2.draw()
+        if not snake1.ball.ready:
+            snake1.ball.draw()
+        if not snake2.ball.ready:
+            snake2.ball.draw()
         yummy.draw()
 
         text = FONT_low.render('Player1 score: ' + str(snake1.score), True, (255, 255, 0))

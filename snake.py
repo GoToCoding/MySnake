@@ -1,5 +1,6 @@
 import copy, pygame
 from constants import *
+from ball import Ball
 
 class Snake:
     def __init__(self, x, y, screen, color):
@@ -11,6 +12,7 @@ class Snake:
         self.tail = [x, y]
         self.screen = screen
         self.color = color
+        self.isAlive = True
 
     def fixDirection(self):
         if self.dx == 1: self.direction = 'right'
@@ -48,7 +50,8 @@ class Snake:
 
 
     def go(self):
-
+        if self.isAlive == False:
+            return 1
         self.tail = copy.deepcopy(self.body[-1])
         i = len(self.body) - 1
         while (i > 0):
