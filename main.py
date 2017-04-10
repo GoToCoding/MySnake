@@ -9,19 +9,30 @@ pygame.init()
 FONT = pygame.font.SysFont("Purisa", 40)
 FONT_low = pygame.font.SysFont("Purisa", 25)
 
+icon = pygame.image.load('snake.png')
+pygame.display.set_icon(icon)
+pygame.display.set_caption("Snake v1.0")
 screen = pygame.display.set_mode((width, height + 40))
-pygame.display.set_caption("Snake v0.1")
 
-def TheEnd(score):
-    screen.fill((40, 255, 50))
+def TheEnd(name, score):
+
+    screen.fill((40, 255, 50))       
+
     text = FONT.render('The end!', True, (100, 100, 100))
     screen.blit(text, (50, 50))
 
-    text = FONT.render('Your score: ' + str(score), True, (100, 100, 100))
-    screen.blit(text, (50, 100))
+    if name == 'Draw':
+        text = FONT.render('Draw!', True, (100, 100, 100))
+        screen.blit(text, (50, 120))
+    else:
+        text = FONT.render(name + ' win!', True, (100, 100, 100))
+        screen.blit(text, (50, 120))
+
+        text = FONT.render('Score: ' + str(score), True, (100, 100, 100))
+        screen.blit(text, (50, 190))
 
     text = FONT.render('Press ECS to exit...', True, (100, 100, 100))
-    screen.blit(text, (50, 200))
+    screen.blit(text, (50, 260))
 
     pygame.display.update()
     while True:
@@ -32,66 +43,129 @@ def TheEnd(score):
                 if e.key == pygame.K_ESCAPE:
                     sys.exit()
 
-def game():
+def menu():
+    screen.fill((40, 255, 50))
+    text = FONT.render('Player1 plays with arrows', True, (100, 100, 100))
+    screen.blit(text, (40, 100))
 
-    for i in range(W):
-        for j in range(H):
-            pygame.draw.rect(screen, (0, 0, 0), (i * blockW, j * blockH, blockW - 1, blockH - 1), 2)
-
-
+    text = FONT.render('Player2 plays with WASD keys', True, (100, 100, 100))
+    screen.blit(text, (40, 350))
     pygame.display.update()
-
-    lastStep = 0
-    stepTime = 400
-
-    snake = Snake(2, 2, screen)
-    apple = Food(4, 2, screen)
-
-    while True:
+    inMenu = True
+    while inMenu:
         for e in pygame.event.get():
             if e.type == pygame.QUIT:
                 sys.exit()
             if e.type == pygame.KEYDOWN:
-                if e.key == pygame.K_UP and snake.direction != 'down': 
-                    snake.dx = 0
-                    snake.dy = -1
-                if e.key == pygame.K_DOWN and snake.direction != 'up':
-                    snake.dx = 0
-                    snake.dy = 1
-                if e.key == pygame.K_RIGHT and snake.direction != 'left':
-                    snake.dx = 1
-                    snake.dy = 0
-                if e.key == pygame.K_LEFT and snake.direction != 'right':
-                    snake.dx = -1
-                    snake.dy = 0
+                if e.key == pygame.K_p:
+                    inMenu = False
+
+def game():
+
+    menu()
+    for i in range(W):
+        for j in range(H):
+            pygame.draw.rect(screen, (0, 0, 0), (i * blockW, j * blockH, blockW - 1, blockH - 1), 2)
+    
+    pygame.display.update()
+
+    lastStep = 0
+    stepTime = 300
+
+    snake1 = Snake(2, 2, screen, (255, 255, 0))
+    snake2 = Snake(20, 20, screen, (255, 0, 255))
+    yummy = Food(25, screen)
+
+    while True:
+        for e in pygame.event.get():
+            if e.type == pygame.QUIT or (e.type == pygame.KEYDOWN and e.key == pygame.K_ESCAPE):
+                sys.exit()
+            if e.type == pygame.KEYDOWN:
+                
+                #first player
+                if e.key == pygame.K_UP:
+                    snake1.tryToDirect('up')
+                if e.key == pygame.K_DOWN:
+                    snake1.tryToDirect('down')
+                if e.key == pygame.K_LEFT:
+                    snake1.tryToDirect('left')
+                if e.key == pygame.K_RIGHT:
+                    snake1.tryToDirect('right')
+
+                #second player
+                if e.key == pygame.K_w:
+                    snake2.tryToDirect('up')
+                if e.key == pygame.K_a:
+                    snake2.tryToDirect('left')
+                if e.key == pygame.K_s:
+                    snake2.tryToDirect('down')
+                if e.key == pygame.K_d:
+                    snake2.tryToDirect('right')
+
+                #pause
+                if e.key == pygame.K_p:
+                    pause = True
+                    while pause:
+                        for e in pygame.event.get():
+                            if e.type == pygame.QUIT:
+                                sys.exit()
+                            if e.type == pygame.KEYDOWN:
+                                if e.key == pygame.K_p:
+                                    pause = False
 
         if lastStep + stepTime > pygame.time.get_ticks():
             continue
         lastStep = pygame.time.get_ticks()
 
-        snake.fixDirection()
+        snake1.fixDirection()
+        snake2.fixDirection()
 
-        if snake.die():
-            TheEnd(snake.score)
-            sys.exit()
+        fl1 = snake1.die(snake2.body)
+        fl2 = snake2.die(snake1.body)
 
-        snake.go()
-        if snake.eat(apple):
-            stepTime -= 25
-            if stepTime < 120: stepTime = 120
-            snake.ate(apple)
-            apple.getNew(snake.body)
+        if fl1 and fl2:
+            if snake1.score > snake2.score:
+                TheEnd('Player 1', snake1.score)
+            elif snake1.score < snake2.score:
+                TheEnd('Player 2', snake2.score)
+            else:
+                TheEnd('Draw', snake1.score)
+        if fl1:
+            TheEnd('Player 2', snake2.score)
+        if fl2:
+            TheEnd('Player 1', snake1.score)
+
+        snake1.go()
+        snake2.go()
+
+        #check for eating apples FIRST  PLAYER
+        for apple in yummy.apples:
+            if snake1.eat(apple):
+                snake1.ate()
+                yummy.removeFood(apple)
+                yummy.addNew()
+
+        #check for eating apples SECOND PLAYER
+        for apple in yummy.apples:
+            if snake2.eat(apple):
+                snake2.ate()
+                yummy.removeFood(apple)
+                yummy.addNew()
 
         screen.fill(GREEN)
         for i in range(W):
             for j in range(H):
                 pygame.draw.rect(screen, (0, 0, 0), (i * blockW, j * blockH, blockW - 1, blockH - 1))
 
-        snake.draw()
-        apple.draw()
+        snake1.draw()
+        snake2.draw()
+        yummy.draw()
 
-        text = FONT_low.render('Score: ' + str(snake.score), True, (100, 100, 100))
-        screen.blit(text, (30, 600))
+        text = FONT_low.render('Player1 score: ' + str(snake1.score), True, (100, 100, 100))
+        screen.blit(text, (20, 600))
+
+        text = FONT_low.render('Player2 score: ' + str(snake2.score), True, (100, 100, 100))
+        screen.blit(text, (400, 600))
 
         pygame.display.update()
 

@@ -1,6 +1,6 @@
-# MySnake
 Snake clone
 
-I want to code snake for 2 players
+Snake for 2 players
+You learn the rules if you try to play
 
 #Pygame #Python3
