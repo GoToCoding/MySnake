@@ -6,13 +6,19 @@ from constants import *
 
 pygame.init()
 
-FONT = pygame.font.SysFont("Purisa", 40)
+FONT = pygame.font.SysFont("Purisa", 35)
 FONT_low = pygame.font.SysFont("Purisa", 25)
 
 icon = pygame.image.load('snake.png')
 pygame.display.set_icon(icon)
 pygame.display.set_caption("Snake v1.0")
 screen = pygame.display.set_mode((width, height + 40))
+
+def faster(t):
+    t -= 30
+    if t < 150:
+        t = 150
+    return t
 
 def TheEnd(name, score):
 
@@ -45,11 +51,15 @@ def TheEnd(name, score):
 
 def menu():
     screen.fill((40, 255, 50))
-    text = FONT.render('Player1 plays with arrows', True, (100, 100, 100))
-    screen.blit(text, (40, 100))
+    text = FONT.render('Player1 plays with arrows', True, (150, 100, 0))
+    screen.blit(text, (20, 100))
 
-    text = FONT.render('Player2 plays with WASD keys', True, (100, 100, 100))
-    screen.blit(text, (40, 350))
+    text = FONT.render('Player2 plays with WASD keys', True, (150, 0, 100))
+    screen.blit(text, (20, 250))
+
+    text = FONT.render('Press P to start...', True, (0, 0, 100))
+    screen.blit(text, (20, 400))
+
     pygame.display.update()
     inMenu = True
     while inMenu:
@@ -142,6 +152,7 @@ def game():
         #check for eating apples FIRST  PLAYER
         for apple in yummy.apples:
             if snake1.eat(apple):
+                stepTime = faster(stepTime)
                 snake1.ate()
                 yummy.removeFood(apple)
                 yummy.addNew()
@@ -149,24 +160,27 @@ def game():
         #check for eating apples SECOND PLAYER
         for apple in yummy.apples:
             if snake2.eat(apple):
+                stepTime = faster(stepTime)
                 snake2.ate()
                 yummy.removeFood(apple)
                 yummy.addNew()
 
-        screen.fill(GREEN)
-        for i in range(W):
-            for j in range(H):
-                pygame.draw.rect(screen, (0, 0, 0), (i * blockW, j * blockH, blockW - 1, blockH - 1))
+        screen.fill((0, 0, 0))
+        # for i in range(W):
+        #     for j in range(H):
+        #         pygame.draw.rect(screen, (0, 0, 0), (i * blockW, j * blockH, blockW - 1, blockH - 1))
+
+        pygame.draw.rect(screen, (30, 30, 10), (0, height, width, 40))
 
         snake1.draw()
         snake2.draw()
         yummy.draw()
 
-        text = FONT_low.render('Player1 score: ' + str(snake1.score), True, (100, 100, 100))
-        screen.blit(text, (20, 600))
+        text = FONT_low.render('Player1 score: ' + str(snake1.score), True, (255, 255, 0))
+        screen.blit(text, (20, height))
 
-        text = FONT_low.render('Player2 score: ' + str(snake2.score), True, (100, 100, 100))
-        screen.blit(text, (400, 600))
+        text = FONT_low.render('Player2 score: ' + str(snake2.score), True, (255, 0, 255))
+        screen.blit(text, (340, height))
 
         pygame.display.update()
 
