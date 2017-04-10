@@ -1,0 +1,10 @@
+GREEN = (40, 200, 40)
+RED = (200, 20, 20)
+GRAY = (128, 128, 128)
+width = 600
+height = 600
+fps = 1
+W = 30      #must be more than 5 and width must be divisible by W
+H = 30      #must be more than 5 and height must be divisible by H
+blockW = width / W
+blockH = height / H
