@@ -123,7 +123,11 @@ def game():
         fl1 = snake1.die(snake2.body)
         fl2 = snake2.die(snake1.body)
 
-        if fl1 and fl2:
+        snake1.go()
+        snake2.go()
+
+        #FIXME (Spike: If heads are equal I check it like this)
+        if (fl1 and fl2) or (snake1.body[0][0] == snake2.body[0][0] and snake1.body[0][1] == snake2.body[0][1]):
             if snake1.score > snake2.score:
                 TheEnd('Player 1', snake1.score)
             elif snake1.score < snake2.score:
@@ -134,9 +138,6 @@ def game():
             TheEnd('Player 2', snake2.score)
         if fl2:
             TheEnd('Player 1', snake1.score)
-
-        snake1.go()
-        snake2.go()
 
         #check for eating apples FIRST  PLAYER
         for apple in yummy.apples:
